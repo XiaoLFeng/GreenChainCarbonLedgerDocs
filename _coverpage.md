@@ -6,7 +6,7 @@
 
 [锋楪仓库｜后端](https://git-fy.cn/FrontLeaves/GreenChainCarbonLedger)
 [锋楪仓库｜前端](https://git-fy.cn/FrontLeaves/green-chain-carbon-ledger-web)
-[Get Started](#绿链碳账本)
+[开始吧](#绿链碳账本)
 
 <!-- 背景色 -->
 

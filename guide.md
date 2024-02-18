@@ -114,4 +114,4 @@
 
 赛题评分要点见附件一:A 类企业命题初赛统一评分标准。
 
-![image-20240218184106628](https://i-cdn.akass.cn/2024/02/65d1ded4294d5.png!wp60)
+<img src="https://i-cdn.akass.cn/2024/02/65d1ded4294d5.png!wp60" alt="image-20240218184106628" style="zoom:50%;" />
