@@ -31,7 +31,7 @@
 - 杨娜【前端工程|前端设计】
 - 戴闯【后端工程|后端设计】
 - 张林浦【后端工程】
-- 郑文琰【文档处理|后勤】
+- 郑文琰【文档处理|后勤|市场分析】
 
 
 
@@ -51,11 +51,20 @@
     - [org.springframework.boot] spring-boot-starter-thymeleaf
     - [org.springframework.boot] spring-boot-starter-validation
     - [org.springframework.boot] spring-boot-starter-web
+    - [org.springframework.boot] spring-boot-starter-mail
+    - [org.mybatis.spring.boot] mybatis-spring-boot-starter:3.0.3
     - [com.fasterxml.jackson.module] jackson-module-kotlin
     - [org.jetbrains.kotlin] kotlin-reflect
     - [org.jetbrains.kotlin] kotlin-stdlib
+    - [io.jsonwebtoken] jjwt-api:0.11.3
+    - [io.jsonwebtoken] jjwt-impl:0.11.3
+    - [io.jsonwebtoken] jjwt-jackson:0.11.3
     - [com.mysql] mysql-connector-j
+    - [redis.clients] jedis:3.8.0
+    - [com.google.code.gson] gson
+    - [org.apache.shiro] shiro-spring-boot-starter:1.13.0
     - [org.projectlombok] lombok
+    - [org.jetbrains] annotations:24.1.0
   - 架构打包
     - [dev] 开发测试使用
     - [test] 对接测试使用
@@ -68,4 +77,3 @@
 - 使用框架 `Vue3`
 - 使用设计框架，主要为 [AntDesign](https://antdv.com/docs/vue/introduce-cn) ，辅助设计为 [Flowbite](https://flowbite.com/)
 - 原型图设计工具 [Pixso](https://pixso.cn/)
-- 
