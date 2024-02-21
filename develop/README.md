@@ -4,6 +4,12 @@
 
 
 
+## 开发周期
+
+本项目开发周期预计为：**3个月**（要求，每人开发需要按时完成分配的任务，以及对任务内未提及或隐藏部分完善出来）
+
+
+
 ## 开发前的准备事项
 
 1. **环境搭建**：确保开发团队具备必要的软件安装和环境配置，包括但不限于 `Node.js`, `Vue CLI`, `JDK-17`, `Kotlin`, `MySQL`, `Redis`, `Elasticsearch`, `Docker`, 以及 `Hyperledger Fabric` 的环境设置。
@@ -52,19 +58,25 @@
     - [org.springframework.boot] spring-boot-starter-validation
     - [org.springframework.boot] spring-boot-starter-web
     - [org.springframework.boot] spring-boot-starter-mail
+    - [org.springframework.boot] spring-boot-starter-aop
     - [org.mybatis.spring.boot] mybatis-spring-boot-starter:3.0.3
     - [com.fasterxml.jackson.module] jackson-module-kotlin
     - [org.jetbrains.kotlin] kotlin-reflect
     - [org.jetbrains.kotlin] kotlin-stdlib
+    - [org.jetbrains.kotlin] kotlin-stdlib-jdk8:${kotlin.version}
     - [io.jsonwebtoken] jjwt-api:0.11.3
-    - [io.jsonwebtoken] jjwt-impl:0.11.3
-    - [io.jsonwebtoken] jjwt-jackson:0.11.3
     - [com.mysql] mysql-connector-j
     - [redis.clients] jedis:3.8.0
     - [com.google.code.gson] gson
-    - [org.apache.shiro] shiro-spring-boot-starter:1.13.0
+    - [commons-httpclient] commons-httpclient:3.1
+    - [org.mindrot] jbcrypt:0.4
+    - [org.apache.shiro] shiro-spring:1.13.0
+    - [org.apache.shiro] shiro-core:1.13.0
+    - [org.apache.shiro] shiro-web:1.13.0
+    - [commons-codec] commons-codec:1.15
     - [org.projectlombok] lombok
     - [org.jetbrains] annotations:24.1.0
+    - [org.springframework.boot] spring-boot-starter-test
   - 架构打包
     - [dev] 开发测试使用
     - [test] 对接测试使用
@@ -77,3 +89,22 @@
 - 使用框架 `Vue3`
 - 使用设计框架，主要为 [AntDesign](https://antdv.com/docs/vue/introduce-cn) ，辅助设计为 [Flowbite](https://flowbite.com/)
 - 原型图设计工具 [Pixso](https://pixso.cn/)
+
+### 接口
+
+- 接口采用 Apifox 进行接口测试，已将各位开发者拉入团队项目内（可在 **锋楪技术团队 -> GreenChainCarbonLedger** 中查阅到）
+- Api 采用 `RESTful` 风格进行开发，具体额外开发规范请参考[接口开发规范](/develop/api/api-specification)，对所有的业务请求中，若返回内容不正确，均会返回对应的HTTP状态码与请求内容。
+- 具体其他接口内容参考规范后进行配置
+- 使用 IDEA 插件 [Apifox Helper](https://plugins.jetbrains.com/plugin/20549-apifox-helper) 辅助进行接口文档编写与描述完善
+
+
+
+## 开发方式
+
+> 本次开发采用 **敏捷开发** 方式进行
+
+开发方式采用线上/线下进行开发，在项目开发前需要各位开发者明确本次的项目信息、开发目的以及开发内容。在正式开发前的准备阶段，若有不理解的地方请各位开发者充分提问出来。在执行正式开发后，非代码不理解的地方（即业务问题）请在对应仓库创建工单进行。
+
+发工单时，请务必描述清楚需求内容以及参与工单人员（与后面敏捷开发相结合），具体提问及本项目敏捷开发方式，请参考 [本项目开发方式](/develop/agile-development)
+
+具体敏捷开发方式请参考 [本项目开发方式](/develop/agile-development)
