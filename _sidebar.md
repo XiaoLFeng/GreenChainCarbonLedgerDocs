@@ -2,7 +2,7 @@
 * [项目说明文档](/guide)
 * [开发文档](/develop/)
   * [后端文档](/develop/api/api-specification)
-    * [接口文档(请以Apifox为主)](/develop/api/api-doc)
+    * [接口文档](/develop/api/api-doc)
     * [数据库文档](/develop/api/api-database)
     * [接口开发规范](/develop/api/api-specification)
   * [前端文档](/develop/web/web-specification)
@@ -10,3 +10,4 @@
     * [Axios开发规范](/develop/web/web-axios)
   * [本项目开发方式](/develop/agile-development)
   * [角色权限分配](/develop/develop-role)
+* [接口文档(外部)](http://carbon.api.api-fy.cn/)
