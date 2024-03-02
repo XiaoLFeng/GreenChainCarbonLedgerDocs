@@ -1,8 +1,91 @@
 # 数据库文档
 
-## fy_user
+#### 1、 fy_approve_manage
+管理用户认证
 
-> 账户
+| 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
+| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| 1 | `id` | 主键 | bigint unsigned | PRI | NO | auto_increment |  |
+| 2 | `account_uuid` | 账户UUID | char(36) | MUL | NO |  |  |
+| 3 | `account_type` | 如"管理员"、"政府环保部门"、"第三方审核机构" | tinyint unsigned |  | NO |  |  |
+| 4 | `organize_name` | 组织名称 | varchar(100) |  | NO |  |  |
+| 5 | `organize_authorize_url` | 授权书地址 | varchar(255) |  | NO |  |  |
+| 6 | `legal_representative_name` | 代表人名字 | varchar(100) |  | NO |  |  |
+| 7 | `legal_representative_id` | 代表人身份证 | char(18) |  | YES |  |  |
+| 8 | `certification_status` | 认证状态(0: 未通过，1: 通过，2: 拒绝） | tinyint unsigned |  | NO |  | 0 |
+| 9 | `apply_time` | 申请时间 | datetime |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
+| 10 | `approve_time` | 审批时间 | datetime |  | YES |  |  |
+| 11 | `updatedAt` | 修改时间 | timestamp |  | YES |  |  |
+| 12 | `remarks` | 备注 | varchar(255) |  | YES |  |  |
+| 13 | `approve_uuid` | 审批人 | char(36) | MUL | YES |  |  |
+| 14 | `approve_remarks` | 审批人备注 | varchar(255) |  | YES |  |  |
+
+
+#### 2、 fy_approve_organize
+组织账户认证
+
+| 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
+| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| 1 | `id` | 主键ID | bigint unsigned | PRI | NO | auto_increment |  |
+| 2 | `account_uuid` | 账户的全局唯一标识符UUID  | char(36) | UNI | NO |  |  |
+| 3 | `type` | 类型（0：管理员审核、1：支付宝审核、等） | tinyint |  | NO |  | 0 |
+| 4 | `organize_name` | 组织名称 | varchar(255) |  | NO |  |  |
+| 5 | `organize_license_url` | 营业执照的URL地址 | varchar(255) |  | NO |  |  |
+| 6 | `organize_credit_code` | 企业统一社会信用代码，长度18位 | varchar(18) | UNI | NO |  |  |
+| 7 | `organize_registered_capital` | 注册资本，支持小数点后两位 | decimal(10,2) |  | NO |  |  |
+| 8 | `organize_establishment_date` | 成立日期 | date |  | NO |  |  |
+| 9 | `legal_representative_name` | 法人代表姓名 | varchar(100) |  | NO |  |  |
+| 10 | `legal_representative_id` | 法人代表身份证 | varchar(18) |  | NO |  |  |
+| 11 | `legal_id_card_front_url` | 法人代表身份证正面照片URL地址 | varchar(255) |  | NO |  |  |
+| 12 | `legal_id_card_back_url` | 法人代表身份证反面照片URL地址 | varchar(255) |  | NO |  |  |
+| 13 | `certification_status` | 认证状态，如0未认证，1已认证，2认证拒绝 | tinyint |  | NO |  | 0 |
+| 14 | `apply_time` | 申请时间 | datetime |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
+| 15 | `approve_time` | 审批时间 | datetime |  | NO |  |  |
+| 16 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+| 17 | `remarks` | 备注信息 | varchar(255) |  | YES |  |  |
+| 18 | `approver_uuid` | 审批人 | char(36) | MUL | NO |  |  |
+| 19 | `approver_remarks` | 审批人备注 | text |  | YES |  |  |
+
+
+#### 3、 fy_invite
+邀请
+
+| 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
+| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| 1 | `id` | 邀请主键 | bigint unsigned | PRI | NO | auto_increment |  |
+| 2 | `uuid` | 用户外键 | char(36) | MUL | NO |  |  |
+| 3 | `code` | 邀请码 | char(10) | UNI | NO |  |  |
+| 4 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
+| 5 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+
+
+#### 4、 fy_permission
+权限
+
+| 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
+| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| 1 | `pid` | 权限id | bigint unsigned | PRI | NO | auto_increment |  |
+| 2 | `name` | 权限名字 | varchar(50) | UNI | NO |  |  |
+| 3 | `description` | 权限描述 | varchar(100) |  | YES |  |  |
+
+
+#### 5、 fy_role
+角色列表
+
+| 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
+| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| 1 | `id` | 列表id | tinyint unsigned | PRI | NO | auto_increment |  |
+| 2 | `uuid` | 列表唯一识别码 | char(36) | UNI | NO |  |  |
+| 3 | `name` | 角色名字 | varchar(36) |  | NO |  |  |
+| 4 | `display_name` | 展示名字 | varchar(20) |  | NO |  |  |
+| 5 | `permission` | 角色权限 | json |  | YES |  |  |
+| 6 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
+| 7 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+| 8 | `created_user` | 创建用户uuid | char(36) | MUL | YES |  |  |
+
+
+#### 6、 fy_user
+账户
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
 | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
@@ -15,7 +98,7 @@
 | 7 | `phone` | 手机号 | varchar(11) | UNI | YES |  |  |
 | 8 | `avatar` | 头像 | text |  | YES |  |  |
 | 9 | `password` | 密码 | varchar(255) |  | NO |  |  |
-| 10 | `role` | 权限组 | tinyint unsigned |  | NO |  | 1 |
+| 10 | `role` | 权限组 | char(36) | MUL | NO |  |  |
 | 11 | `permission` | 附加权限 | json |  | YES |  |  |
 | 12 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
 | 13 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
@@ -23,76 +106,37 @@
 | 15 | `invite` | 邀请码 | char(10) | MUL | YES |  |  |
 | 16 | `deleted_at` | 删除时间 | timestamp |  | YES |  |  |
 
-```mysql
--- auto-generated definition
-create table fy_user
-(
-    uid        bigint unsigned auto_increment comment '账户序列'
-        primary key,
-    uuid       char(36)                                   not null comment '用户唯一识别码',
-    user_name  varchar(40)                                not null comment '用户名',
-    nick_name  varchar(40)                                null comment '昵称',
-    real_name  varchar(40)                                not null comment '真实信息',
-    email      varchar(100)                               not null comment '邮箱',
-    phone      varchar(11)                                null comment '手机号',
-    avatar     text                                       null comment '头像',
-    password   varchar(255)                               not null comment '密码',
-    role       tinyint unsigned default '1'               not null comment '权限组',
-    permission json                                       null comment '附加权限',
-    created_at timestamp        default CURRENT_TIMESTAMP not null comment '创建时间',
-    updated_at timestamp                                  null comment '修改时间',
-    ban        tinyint(1)       default 0                 not null comment '账户封禁',
-    invite     char(10)                                   null comment '邀请码',
-    deleted_at timestamp                                  null comment '删除时间',
-    constraint fy_user_email_uindex
-        unique (email),
-    constraint fy_user_phone_uindex
-        unique (phone),
-    constraint fy_user_real_name_uindex
-        unique (real_name),
-    constraint fy_user_user_name_uindex
-        unique (user_name),
-    constraint fy_user_uuid_uindex
-        unique (uuid),
-    constraint fy_user_fy_invite_code_fk
-        foreign key (invite) references fy_invite (code)
-            on update cascade on delete cascade
-)
-    comment '账户';
-```
 
-
-
-## fy_invite
-
-> 邀请
+#### 7、 fy_user_ram
+子用户
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
 | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
-| 1 | `id` | 邀请主键 | bigint unsigned | PRI | NO | auto_increment |  |
-| 2 | `uuid` | 用户外键 | char(36) | MUL | NO |  |  |
-| 3 | `code` | 邀请码 | char(10) | UNI | NO |  |  |
-| 4 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
-| 5 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+| 1 | `ruid` | 子用户主键 | bigint unsigned | PRI | NO | auto_increment |  |
+| 2 | `uuid` | 主用户唯一识别码 | char(36) | MUL | NO |  |  |
+| 3 | `ruuid` | 子用户唯一识别码 | char(36) | UNI | NO |  |  |
+| 4 | `user_name` | 子用户名 | varchar(40) | UNI | NO |  |  |
+| 5 | `nick_name` | 昵称 | varchar(40) |  | YES |  |  |
+| 6 | `real_name` | 真实姓名 | varchar(4) |  | YES |  |  |
+| 7 | `email` | 邮箱 | varchar(100) | UNI | NO |  |  |
+| 8 | `phone` | 手机号 | varchar(11) | UNI | YES |  |  |
+| 9 | `password` | 密码 | varchar(255) |  | NO |  |  |
+| 10 | `permission` | 权限（不可超过主用户权限） | json |  | YES |  |  |
+| 11 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
+| 12 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
 
-```mysql
--- auto-generated definition
-create table fy_invite
-(
-    id         bigint unsigned auto_increment comment '邀请主键'
-        primary key,
-    uuid       char(36)                            not null comment '用户外键',
-    code       char(10)                            not null comment '邀请码',
-    created_at timestamp default CURRENT_TIMESTAMP not null comment '创建时间',
-    updated_at timestamp                           null comment '修改时间',
-    constraint fy_invite_code_uindex
-        unique (code),
-    constraint fy_invite_fy_user_uuid_fk
-        foreign key (uuid) references fy_user (uuid)
-            on update cascade on delete cascade
-)
-    comment '邀请';
-```
+
+#### 8、 fy_user_verify
+账户校验
+
+| 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
+| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| 1 | `id` | 主键 | bigint unsigned | PRI | NO | auto_increment |  |
+| 2 | `uuid` | 用户uuid | char(36) | MUL | NO |  |  |
+| 3 | `phone_verify` | 手机号校验 | tinyint(1) |  | NO |  | 0 |
+| 4 | `email_verify` | 邮箱验证 | tinyint(1) |  | NO |  | 0 |
+| 5 | `phone_verify_time` | 验证时间 | timestamp |  | YES |  |  |
+| 6 | `email_verify_time` | 邮箱验证时间 | timestamp |  | YES |  |  |
 
 ----
 
