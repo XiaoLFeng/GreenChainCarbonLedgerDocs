@@ -1,5 +1,8 @@
 * [绿链碳账本](/)
 * [项目说明文档](/guide)
+* [项目设计方案](/design/)
+  * [区块链设计方案](/design/blockchain-design)
+  * [用户设计方案](/design/user-design)
 * [开发文档](/develop/)
   * [后端文档](/develop/api/api-specification)
     * [接口文档](/develop/api/api-doc)
