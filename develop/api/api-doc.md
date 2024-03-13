@@ -2,8 +2,6 @@
 
 Base URLs:
 
-* <a href="http://localhost:8081/api/v1">开发环境: http://localhost:8081/api/v1</a>
-
 # Authentication
 
 - HTTP Authentication, scheme: bearer
@@ -257,7 +255,10 @@ POST /auth/login
       "email": "string",
       "phone": "string"
     },
-    "role": "string",
+    "role": {
+      "name": "string",
+      "displayName": "string"
+    },
     "token": "string",
     "permission": {
       "rolePermission": [
@@ -332,8 +333,10 @@ HTTP Status Code **200**
 |»»» userName|string|true|none|用户名|none|
 |»»» realName|string|true|none|真实信息|none|
 |»»» email|string|true|none|邮箱|none|
-|»»» phone|string|true|none|手机号|none|
-|»» role|string|true|none|角色组|none|
+|»»» phone|string¦null|true|none|手机号|none|
+|»» role|object|true|none|角色组|none|
+|»»» name|string|true|none|角色名|none|
+|»»» displayName|string|true|none|角色名描述|none|
 |»» token|string|true|none|用户登录验证令牌|none|
 |»» permission|object|true|none||none|
 |»»» rolePermission|[string]|true|none|角色权限组表|none|
@@ -604,17 +607,25 @@ GET /auth/logout
 
 此接口用于用户的账户登出操作，确保用户能够安全退出应用或网站。当用户调用此接口后，系统将清除用户的会话信息，从而结束用户的登录状态。
 
+> 账户登出具体操作：后端需要对Redis数据进行删除即可，告知前端需要删除对应cookie参数
+> Redis键：auth:token:\<number\>:\<uuid\>
+
 ## 备注
 
 - 在前端调用此接口前，应确保已经从用户设备中获取到了会话标识（已镫骨）。
 - 调用此接口成功后，前端应清除本地存储的会话标识，并引导用户回到登录页面或首页。
 - 后端需要对 Redis 进行账户清除工作，避免用户登出后仍然可以使用原有 UUID 与 Token 进行登陆操作
+    - uuid
+    - token
+    - userAgent
+    - userIp
 
 ### Params
 
 |Name|Location|Type|Required|Title|Description|
 |---|---|---|---|---|---|
 |X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
 
 > Response Examples
 
@@ -663,32 +674,81 @@ GET /auth/logout
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
 |405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
 
+## GET 登陆信息
+
+GET /auth/login-info
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
 # RoleController
 
-## GET 角色列表
+## GET 获取当前角色
 
-GET /role/list
+GET /role/current
 
 ## 接口描述
 
-此接口用于查询系统中定义的所有角色及其相关信息。角色通常用于定义用户在系统中的权限和访问级别。通过此接口，管理员可以获取一个角色的列表，包括每个角色的ID、名称和描述等信息，以便于进行角色分配和权限管理。
+此接口用于查询系统中定义的当前用户角色及其相关信息。角色通常用于定义用户在系统中的权限和访问级别。通过此接口，管理员可以获取一个角色的列表，包括每个角色的ID、名称和描述等信息，以便于进行角色分配和权限管理。
 
 ## 备注
 
 - 此接口不涉及敏感操作，登录用户均可以对接口信息获取。
 - 接口返回的角色列表应包括角色的所有基本信息，足够进行角色分配和管理决策。
-- 在实际应用中，可能还需要考虑分页或过滤功能，以便于管理大量的角色。
 
 ### Params
 
 |Name|Location|Type|Required|Title|Description|
 |---|---|---|---|---|---|
-|type|query|string| yes ||[search/available/all]|
-|search|query|string| no ||当 type 为 search 生效，目的为模糊查找|
-|limit|query|number| no ||单页限制个数（默认10个）「不可超过50」|
-|page|query|number| no ||第几页|
-|order|query|string| yes ||[asc/desc] 顺序/倒序|
 |X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
 
 > Response Examples
 
@@ -699,7 +759,14 @@ GET /role/list
   "output": "string",
   "code": 0,
   "message": "string",
-  "data": "string"
+  "data": {
+    "uuid": "string",
+    "name": "string",
+    "displayName": "string",
+    "permission": [
+      "string"
+    ]
+  }
 }
 ```
 
@@ -733,9 +800,417 @@ GET /role/list
 
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|[BaseResponse](#schemabaseresponse)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
 |405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[BackRoleVO](#schemabackrolevo)|true|none|数据|none|
+|»» uuid|string|true|none|角色唯一识别码|none|
+|»» name|string|true|none|角色名|none|
+|»» displayName|string|true|none|角色名描述|none|
+|»» permission|[string]|true|none|拥有权限|none|
+
+## PUT 角色编辑
+
+PUT /role/edit/{uuid}
+
+## 接口描述
+
+该接口用于编辑和更新角色信息，包括角色的名称、描述、权限等信息。
+
+## 备注
+
+确保在执行编辑操作前，后端服务对 `uuid` 进行有效性验证，确认角色存在且允许编辑（默认情况下 default/organize/admin/console 不允许进行编辑或只允许进行 `displayName` 编辑）。
+权限编辑操作应该谨慎处理，确保不会意外赋予角色过多的权限。
+
+> Body Parameters
+
+```json
+{
+  "name": "string",
+  "displayName": "string",
+  "permission": [
+    "string"
+  ]
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|uuid|path|string| yes ||角色UUID|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+|body|body|[RoleVO](#schemarolevo)| no | 角色VO|none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": {
+    "uuid": "string",
+    "name": "string",
+    "displayName": "string",
+    "permission": [
+      "string"
+    ]
+  }
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[BackRoleVO](#schemabackrolevo)|true|none|数据|none|
+|»» uuid|string|true|none|角色唯一识别码|none|
+|»» name|string|true|none|角色名|none|
+|»» displayName|string|true|none|角色名描述|none|
+|»» permission|[string]|true|none|拥有权限|none|
+
+## POST 角色添加
+
+POST /role/add
+
+## 接口描述
+
+该接口用于添加新角色，包括角色的名称、描述、权限等信息。
+
+## 备注
+
+- 在创建新角色前，后端服务需要验证角色的名称是否已存在，避免角色名称重复。
+- 权限列表应该通过已定义的权限标识符进行验证，确保所有赋予的权限都是有效且存在的。
+- 根据实际情况，可能需要对角色的名称、描述进行一定格式或内容的校验，以保证数据的合法性和一致性。
+
+> Body Parameters
+
+```json
+{
+  "name": "string",
+  "displayName": "string",
+  "permission": [
+    "string"
+  ]
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+|body|body|[RoleVO](#schemarolevo)| no | 角色VO|none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": {
+    "name": "string",
+    "displayName": "string",
+    "permission": [
+      "string"
+    ]
+  }
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[RoleVO](#schemarolevo)|true|none|角色VO|none|
+|»» name|string|true|none|角色名|none|
+|»» displayName|string¦null|true|none|展示名字|none|
+|»» permission|[string]|true|none|权限组|权限组为权限表字段 fy_permisison.name|
+
+## DELETE 角色删除
+
+DELETE /role/delete/{uuid}
+
+## 接口描述
+
+该接口用于根据角色的唯一标识符删除指定的角色
+
+##　备注
+
+- 在执行删除操作前，后端服务需要验证指定的 `name` 是否存在以及是否可以被删除。例如，某些核心角色可能不允许被删除。
+- 删除角色可能会对系统的权限管理和用户权限产生重大影响，因此需要仔细考虑关联影响，并可能在操作前提醒用户确认。
+- 根据实际需求，可能需要在删除角色后进行一系列的清理操作，比如移除与该角色关联的所有用户的该角色权限，清除Redis缓存。
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|uuid|path|string| yes ||角色UUID|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": {
+    "name": "string",
+    "displayName": "string",
+    "permission": [
+      "string"
+    ]
+  }
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[RoleVO](#schemarolevo)|true|none|角色VO|none|
+|»» name|string|true|none|角色名|none|
+|»» displayName|string¦null|true|none|展示名字|none|
+|»» permission|[string]|true|none|权限组|权限组为权限表字段 fy_permisison.name|
+
+## GET 获取角色列表
+
+GET /role/list
+
+## 接口描述
+
+此接口用于获取系统中所有角色的列表，也可以根据筛选条件获取角色信息。角色是分配给用户以决定其权限的标签。通过此接口，管理员可以查看系统中定义的所有角色及其相关信息，以便于管理和分配权限。
+
+## 备注
+
+- 需要有对应权限用户允许执行
+
+## 接口权限
+
+> role:getRoleList
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|type|query|string| yes ||[all/search/user/permission]|
+|search|query|string| no ||type为 user、permission、search 生效|
+|limit|query|number| no ||单页限制个数（默认20个）「不可超过100」|
+|page|query|number| no ||第几页|
+|order|query|string| no ||[asc/desc] 顺序/倒序|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": [
+    {
+      "uuid": "string",
+      "name": "string",
+      "displayName": "string",
+      "permission": [
+        "string"
+      ]
+    }
+  ]
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[[BackRoleVO](#schemabackrolevo)]|true|none|数据|none|
+|»» 数据|[BackRoleVO](#schemabackrolevo)|false|none|数据|none|
+|»»» uuid|string|true|none|角色唯一识别码|none|
+|»»» name|string|true|none|角色名|none|
+|»»» displayName|string|true|none|角色名描述|none|
+|»»» permission|[string]|true|none|拥有权限|none|
 
 # UserController
 
@@ -747,7 +1222,7 @@ GET /user/list
 
 该接口用于查询用户信息。通过指定的查询类型、搜索关键词、结果限制数量、页码及排序规则，可以灵活地检索用户数据。支持对用户列表进行全文搜索、获取未封禁或已封禁用户列表，以及获取当前可用用户列表等多种功能。
 
-> 该接口返回的用户信息必须经过脱敏处理，不能够包含用户的敏感信息。返回的内容避免数据量过大，返回每个用户的基本信息不过多。
+> 该接口返回的用户信息必须经过拖敏处理，不能够包含用户的敏感信息。返回的内容避免数据量过大，返回每个用户的基本信息不过多。
 > 该接口仅管理员可用
 
 ## 备注
@@ -890,76 +1365,6 @@ GET /user/current
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
 |405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
 
-## PUT 修改账户
-
-PUT /user/edit
-
-## 接口描述
-
-此接口用于用户修改自己的账户信息，包括用户名、邮箱和密码等。允许用户在登录状态下更新个人资料，以确保账户信息的最新性和安全性。
-
-## 备注
-
-- 用户身份的验证是通过 currentPassword 来实现的，确保修改请求的安全性。
-- 在修改用户名或邮箱时，应检查新值是否已被其他账户使用，以保持唯一性。
-- 更新密码时，应对新密码进行加密处理后存储。
-- 修改操作成功后，建议发送一封确认邮件到用户的新邮箱地址（如果邮箱地址被修改），以验证新邮箱的有效性。
-
-### Params
-
-|Name|Location|Type|Required|Title|Description|
-|---|---|---|---|---|---|
-|X-Timestamp|header|integer| yes ||前端传递的时间戳|
-
-> Response Examples
-
-> 200 Response
-
-```json
-{
-  "output": "string",
-  "code": 0,
-  "message": "string",
-  "data": "string"
-}
-```
-
-> 页面不存在
-
-```json
-{
-  "output": "PageNotFounded",
-  "code": 40401,
-  "message": "页面不存在",
-  "data": {
-    "errorMessage": "页面 / 不存在"
-  }
-}
-```
-
-> 请求方法不支持
-
-```json
-{
-  "output": "RequestMethodNotSupported",
-  "code": 40500,
-  "message": "请求方法不支持",
-  "data": {
-    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
-  }
-}
-```
-
-### Responses
-
-|HTTP Status Code |Meaning|Description|Data schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|[BaseResponse](#schemabaseresponse)|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
-|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
-
-# AdminController
-
 ## POST 添加账户
 
 POST /user/add
@@ -977,18 +1382,46 @@ POST /user/add
 ## 管理员标记
 是
 
+> Body Parameters
+
+```json
+{
+  "username": "string",
+  "realname": "string",
+  "phone": "string",
+  "email": "string"
+}
+```
+
 ### Params
 
 |Name|Location|Type|Required|Title|Description|
 |---|---|---|---|---|---|
 |X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+|body|body|[UserConsoleRegisterVO](#schemauserconsoleregistervo)| no | 管理员用户创建VO|none|
 
 > Response Examples
 
 > 200 Response
 
 ```json
-{}
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": {
+    "uuid": "string",
+    "userName": "string",
+    "nickName": "string",
+    "realName": "string",
+    "password": "string",
+    "email": "string",
+    "phone": "string",
+    "createdAt": "string",
+    "updatedAt": "string"
+  }
+}
 ```
 
 > 页面不存在
@@ -1026,6 +1459,24 @@ POST /user/add
 |405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
 
 ### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[BackConsoleCreateUserVO](#schemabackconsolecreateuservo)|true|none|数据|none|
+|»» uuid|string|true|none|用户唯一识别码|none|
+|»» userName|string|true|none|用户名|none|
+|»» nickName|string¦null|true|none|昵称|none|
+|»» realName|string|true|none|真实信息|none|
+|»» password|string|true|none|用户未加密密码|none|
+|»» email|string|true|none|邮箱|none|
+|»» phone|string¦null|true|none|手机号|none|
+|»» createdAt|string|true|none|创建时间|none|
+|»» updatedAt|string|true|none|修改时间|none|
 
 ## PATCH 账户密码重置
 
@@ -1104,36 +1555,46 @@ PATCH /admin/user/reset/password
 
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|[BaseResponse](#schemabaseresponse)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
 |405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
 
-## PUT 修改角色
+### Responses Data Schema
 
-PUT /role/edit/{roleUuid}
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|string|true|none||none|
+
+## PUT 修改账户
+
+PUT /user/edit
 
 ## 接口描述
 
-此接口用于修改系统中已存在角色的属性，如角色名称、角色描述及其权限配置。它允许管理员或具有相应权限的用户更新角色信息，以适应组织结构或权限需求的变化。
+此接口用于用户修改自己的账户信息，包括用户名、邮箱和密码等。允许用户在登录状态下更新个人资料，以确保账户信息的最新性和安全性。
 
 ## 备注
 
-此接口需要调用者具有修改角色权限。
-在修改权限配置时，应确保提供的权限标识符有效且存在。
-修改角色信息可能会影响到依赖于这些角色的用户权限配置，操作前应进行充分的影响分析。
-
-## 管理员标记
-是
+- 用户身份的验证是通过 currentPassword 来实现的，确保修改请求的安全性。
+- 在修改用户名或邮箱时，应检查新值是否已被其他账户使用，以保持唯一性。
+- 更新密码时，应对新密码进行加密处理后存储。
+- 修改操作成功后，建议发送一封确认邮件到用户的新邮箱地址（如果邮箱地址被修改），以验证新邮箱的有效性。
 
 > Body Parameters
 
 ```json
 {
-  "name": "string",
-  "displayName": "string",
-  "permission": [
-    0
-  ]
+  "nickName": "string",
+  "avatar": "string",
+  "email": "string",
+  "phone": "string",
+  "emailCode": "string",
+  "phoneCode": "string"
 }
 ```
 
@@ -1141,10 +1602,9 @@ PUT /role/edit/{roleUuid}
 
 |Name|Location|Type|Required|Title|Description|
 |---|---|---|---|---|---|
-|roleUuid|path|string| yes ||角色唯一序列号|
 |X-Timestamp|header|integer| yes ||前端传递的时间戳|
 |X-Auth-UUID|header|string| yes ||用户的UUID|
-|body|body|[RoleEditVO](#schemaroleeditvo)| no | 编辑角色信息VO|none|
+|body|body|[UserEditVO](#schemausereditvo)| no | 账户修改信息VO|none|
 
 > Response Examples
 
@@ -1157,11 +1617,13 @@ PUT /role/edit/{roleUuid}
   "message": "string",
   "data": {
     "uuid": "string",
-    "name": "string",
-    "displayName": "string",
-    "permission": [
-      "string"
-    ]
+    "userName": "string",
+    "nickName": "string",
+    "realName": "string",
+    "email": "string",
+    "phone": "string",
+    "createdAt": "string",
+    "updatedAt": "string"
   }
 }
 ```
@@ -1209,11 +1671,413 @@ HTTP Status Code **200**
 |» output|string|true|none|状态名|英文状态描述|
 |» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
 |» message|string|true|none|状态描述|对状态的中文描述|
-|» data|[BackRoleVO](#schemabackrolevo)|true|none|数据|none|
-|»» uuid|string|true|none|角色唯一识别码|none|
-|»» name|string|true|none|角色名|none|
-|»» displayName|string|true|none|角色名描述|none|
-|»» permission|[string]|true|none|拥有权限|none|
+|» data|[BackUserVO](#schemabackuservo)|true|none|数据|none|
+|»» uuid|string|true|none|用户唯一识别码|none|
+|»» userName|string|true|none|用户名|none|
+|»» nickName|string¦null|true|none|昵称|none|
+|»» realName|string|true|none|真实信息|none|
+|»» email|string|true|none|邮箱|none|
+|»» phone|string¦null|true|none|手机号|none|
+|»» createdAt|string|true|none|创建时间|none|
+|»» updatedAt|string|true|none|修改时间|none|
+
+## PATCH 用户封禁
+
+PATCH /user/ban/{uuid}
+
+## 接口描述
+
+此接口用于封禁指定用户账户。通过管理员权限，可以对违反社区规定或有不当行为的用户进行封禁处理，禁止其继续使用平台服务。
+
+## 接口权限
+
+> user:userBan
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|uuid|path|string| yes ||none|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": {
+    "uuid": "string",
+    "userName": "string",
+    "nickName": "string",
+    "realName": "string",
+    "email": "string",
+    "phone": "string",
+    "createdAt": "string",
+    "updatedAt": "string"
+  }
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[BackUserVO](#schemabackuservo)|true|none|数据|none|
+|»» uuid|string|true|none|用户唯一识别码|none|
+|»» userName|string|true|none|用户名|none|
+|»» nickName|string¦null|true|none|昵称|none|
+|»» realName|string|true|none|真实信息|none|
+|»» email|string|true|none|邮箱|none|
+|»» phone|string¦null|true|none|手机号|none|
+|»» createdAt|string|true|none|创建时间|none|
+|»» updatedAt|string|true|none|修改时间|none|
+
+## DELETE 用户强制注销
+
+DELETE /user/force-logout/{uuid}
+
+## 接口描述
+
+此接口允许系统管理员强制注销某个用户的账户，使其立即退出并阻止其使用账户进行后续操作。该操作用于处理违规用户或在用户账户被盗用时快速响应，确保账户安全。
+
+## 备注
+
+- 注销后需要给用户发送注销邮件（模板需要对应开发者自己写）
+- 只有管理云允许有权限进行操作
+
+## 接口权限
+
+> admin:forceLogout
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|uuid|path|string| yes ||none|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": {
+    "uuid": "string",
+    "userName": "string",
+    "nickName": "string",
+    "realName": "string",
+    "email": "string",
+    "phone": "string",
+    "createdAt": "string",
+    "updatedAt": "string"
+  }
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[BackUserVO](#schemabackuservo)|true|none|数据|none|
+|»» uuid|string|true|none|用户唯一识别码|none|
+|»» userName|string|true|none|用户名|none|
+|»» nickName|string¦null|true|none|昵称|none|
+|»» realName|string|true|none|真实信息|none|
+|»» email|string|true|none|邮箱|none|
+|»» phone|string¦null|true|none|手机号|none|
+|»» createdAt|string|true|none|创建时间|none|
+|»» updatedAt|string|true|none|修改时间|none|
+
+## PUT 强制修改账户信息
+
+PUT /user/force-edit/{uuid}
+
+## 接口描述
+
+此接口允许管理员强制修改用户账户的基本信息，包括但不限于用户名、电子邮箱、电话号码等。该功能主要用于在用户信息出现错误或需要紧急更新时使用，确保账户信息的准确性和安全性。
+
+## 备注
+
+- 修改后的信息部分需要校验唯一性
+
+## 接口权限
+
+> user:editUserForce
+
+> Body Parameters
+
+```json
+{
+  "userName": "string",
+  "nickName": "string",
+  "realName": "string",
+  "avatar": "string",
+  "email": "string",
+  "phone": "string"
+}
+```
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|uuid|path|string| yes ||用户UUID|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+|body|body|[UserForceEditVO](#schemauserforceeditvo)| no | 强制修改用户信息VO|none|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": {
+    "uuid": "string",
+    "userName": "string",
+    "nickName": "string",
+    "realName": "string",
+    "email": "string",
+    "phone": "string",
+    "createdAt": "string",
+    "updatedAt": "string"
+  }
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[BackUserVO](#schemabackuservo)|true|none|数据|none|
+|»» uuid|string|true|none|用户唯一识别码|none|
+|»» userName|string|true|none|用户名|none|
+|»» nickName|string¦null|true|none|昵称|none|
+|»» realName|string|true|none|真实信息|none|
+|»» email|string|true|none|邮箱|none|
+|»» phone|string¦null|true|none|手机号|none|
+|»» createdAt|string|true|none|创建时间|none|
+|»» updatedAt|string|true|none|修改时间|none|
+
+# PermissionController
+
+## GET 获取权限列表
+
+GET /permission/list
+
+## 接口描述
+
+此接口用于获取系统中定义的所有权限列表。权限用于控制用户对系统资源的访问。通过此接口，管理员可以查看系统中所有可用的权限，以便于管理用户权限或角色权限的分配。
+
+## 所需权限
+
+> permission:getList
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|limit|query|string| no ||单页限制个数（默认20个）「不可超过100」|
+|page|query|number| no ||第几页|
+|order|query|number| no ||[asc/desc] 顺序/倒序|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{
+  "output": "string",
+  "code": 0,
+  "message": "string",
+  "data": [
+    {
+      "name": "string",
+      "description": "string"
+    }
+  ]
+}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+HTTP Status Code **200**
+
+|Name|Type|Required|Restrictions|Title|description|
+|---|---|---|---|---|---|
+|» output|string|true|none|状态名|英文状态描述|
+|» code|integer|true|none|状态码|业务状态码（前三位为HTTP状态码）|
+|» message|string|true|none|状态描述|对状态的中文描述|
+|» data|[[BackPermissionVO](#schemabackpermissionvo)]|true|none|数据|none|
+|»» 返回权限信息VO|[BackPermissionVO](#schemabackpermissionvo)|false|none|返回权限信息VO|none|
+|»»» name|string|true|none|权限名|none|
+|»»» description|string|true|none|权限描述|none|
 
 # MailController
 
@@ -1250,6 +2114,16 @@ POST /mail/send/code
 }
 ```
 
+> 模板解析错误
+
+```json
+{
+  "output": "TemplateParseError",
+  "code": 40309,
+  "message": "模板解析错误"
+}
+```
+
 > 页面不存在
 
 ```json
@@ -1281,8 +2155,121 @@ POST /mail/send/code
 |HTTP Status Code |Meaning|Description|Data schema|
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|[BaseResponse](#schemabaseresponse)|
+|403|[Forbidden](https://tools.ietf.org/html/rfc7231#section-6.5.3)|模板解析错误|[BaseResponse](#schemabaseresponse)|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
 |405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+# SuperController
+
+## GET 关闭服务
+
+GET /super/closeServer
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
+
+## GET 重制数据表
+
+GET /super/resetSql
+
+### Params
+
+|Name|Location|Type|Required|Title|Description|
+|---|---|---|---|---|---|
+|X-Timestamp|header|integer| yes ||前端传递的时间戳|
+|X-Auth-UUID|header|string| yes ||用户的UUID|
+
+> Response Examples
+
+> 200 Response
+
+```json
+{}
+```
+
+> 页面不存在
+
+```json
+{
+  "output": "PageNotFounded",
+  "code": 40401,
+  "message": "页面不存在",
+  "data": {
+    "errorMessage": "页面 / 不存在"
+  }
+}
+```
+
+> 请求方法不支持
+
+```json
+{
+  "output": "RequestMethodNotSupported",
+  "code": 40500,
+  "message": "请求方法不支持",
+  "data": {
+    "errorMessage": "请求方法 [POST] 不支持,受支持的请求方法为 [GET]"
+  }
+}
+```
+
+### Responses
+
+|HTTP Status Code |Meaning|Description|Data schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|成功|Inline|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|页面不存在|[BaseResponse](#schemabaseresponse)|
+|405|[Method Not Allowed](https://tools.ietf.org/html/rfc7231#section-6.5.5)|请求方法不支持|[BaseResponse](#schemabaseresponse)|
+
+### Responses Data Schema
 
 # 信息
 
@@ -1347,6 +2334,126 @@ GET /info
 
 # Data Schema
 
+<h2 id="tocS_UserForceEditVO">UserForceEditVO</h2>
+
+<a id="schemauserforceeditvo"></a>
+<a id="schema_UserForceEditVO"></a>
+<a id="tocSuserforceeditvo"></a>
+<a id="tocsuserforceeditvo"></a>
+
+```json
+{
+  "userName": "string",
+  "nickName": "string",
+  "realName": "string",
+  "avatar": "string",
+  "email": "string",
+  "phone": "string"
+}
+
+```
+
+强制修改用户信息VO
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|userName|string|true|none|用户名|none|
+|nickName|string¦null|true|none|昵称|none|
+|realName|string|true|none|真实信息|none|
+|avatar|string¦null|true|none|头像|none|
+|email|string|true|none|邮箱|none|
+|phone|string¦null|true|none|手机号|none|
+
+<h2 id="tocS_UserEditVO">UserEditVO</h2>
+
+<a id="schemausereditvo"></a>
+<a id="schema_UserEditVO"></a>
+<a id="tocSusereditvo"></a>
+<a id="tocsusereditvo"></a>
+
+```json
+{
+  "nickName": "string",
+  "avatar": "string",
+  "email": "string",
+  "phone": "string",
+  "emailCode": "string",
+  "phoneCode": "string"
+}
+
+```
+
+账户修改信息VO
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|nickName|string¦null|true|none|昵称|none|
+|avatar|string¦null|true|none|头像|none|
+|email|string|true|none|邮箱|none|
+|phone|string¦null|true|none|手机号|none|
+|emailCode|string¦null|true|none|邮箱验证码|如果邮箱进行修改，验证码是必填|
+|phoneCode|string¦null|true|none|手机验证码|如果手机号进行修改，验证码是必填|
+
+<h2 id="tocS_UserConsoleRegisterVO">UserConsoleRegisterVO</h2>
+
+<a id="schemauserconsoleregistervo"></a>
+<a id="schema_UserConsoleRegisterVO"></a>
+<a id="tocSuserconsoleregistervo"></a>
+<a id="tocsuserconsoleregistervo"></a>
+
+```json
+{
+  "username": "string",
+  "realname": "string",
+  "phone": "string",
+  "email": "string"
+}
+
+```
+
+管理员用户创建VO
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|username|string|true|none|用户名|none|
+|realname|string|true|none|真实信息|none|
+|phone|string¦null|true|none|手机号|none|
+|email|string|true|none|邮箱|none|
+
+<h2 id="tocS_RoleVO">RoleVO</h2>
+
+<a id="schemarolevo"></a>
+<a id="schema_RoleVO"></a>
+<a id="tocSrolevo"></a>
+<a id="tocsrolevo"></a>
+
+```json
+{
+  "name": "string",
+  "displayName": "string",
+  "permission": [
+    "string"
+  ]
+}
+
+```
+
+角色VO
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|name|string|true|none|角色名|none|
+|displayName|string¦null|true|none|展示名字|none|
+|permission|[string]|true|none|权限组|权限组为权限表字段 fy_permisison.name|
+
 <h2 id="tocS_AdminUserChangeVO">AdminUserChangeVO</h2>
 
 <a id="schemaadminuserchangevo"></a>
@@ -1393,6 +2500,44 @@ GET /info
 |email|string|true|none|邮件|none|
 |template|string|true|none|模板|none|
 
+<h2 id="tocS_BackConsoleCreateUserVO">BackConsoleCreateUserVO</h2>
+
+<a id="schemabackconsolecreateuservo"></a>
+<a id="schema_BackConsoleCreateUserVO"></a>
+<a id="tocSbackconsolecreateuservo"></a>
+<a id="tocsbackconsolecreateuservo"></a>
+
+```json
+{
+  "uuid": "string",
+  "userName": "string",
+  "nickName": "string",
+  "realName": "string",
+  "password": "string",
+  "email": "string",
+  "phone": "string",
+  "createdAt": "string",
+  "updatedAt": "string"
+}
+
+```
+
+返回管理员创建用户VO
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|uuid|string|true|none|用户唯一识别码|none|
+|userName|string|true|none|用户名|none|
+|nickName|string¦null|true|none|昵称|none|
+|realName|string|true|none|真实信息|none|
+|password|string|true|none|用户未加密密码|none|
+|email|string|true|none|邮箱|none|
+|phone|string¦null|true|none|手机号|none|
+|createdAt|string|true|none|创建时间|none|
+|updatedAt|string|true|none|修改时间|none|
+
 <h2 id="tocS_AuthDeleteVO">AuthDeleteVO</h2>
 
 <a id="schemaauthdeletevo"></a>
@@ -1416,6 +2561,30 @@ GET /info
 |---|---|---|---|---|---|
 |password|string|true|none|用户密码|none|
 |code|string|true|none|邮箱验证码|none|
+
+<h2 id="tocS_BackPermissionVO">BackPermissionVO</h2>
+
+<a id="schemabackpermissionvo"></a>
+<a id="schema_BackPermissionVO"></a>
+<a id="tocSbackpermissionvo"></a>
+<a id="tocsbackpermissionvo"></a>
+
+```json
+{
+  "name": "string",
+  "description": "string"
+}
+
+```
+
+返回权限信息VO
+
+### Attribute
+
+|Name|Type|Required|Restrictions|Title|Description|
+|---|---|---|---|---|---|
+|name|string|true|none|权限名|none|
+|description|string|true|none|权限描述|none|
 
 <h2 id="tocS_AuthChangePasswordVO">AuthChangePasswordVO</h2>
 
@@ -1458,7 +2627,6 @@ GET /info
   "realName": "string",
   "email": "string",
   "phone": "string",
-  "newPassword": "string",
   "createdAt": "string",
   "updatedAt": "string"
 }
@@ -1477,7 +2645,6 @@ GET /info
 |realName|string|true|none|真实信息|none|
 |email|string|true|none|邮箱|none|
 |phone|string¦null|true|none|手机号|none|
-|newPassword|string¦null|true|none|新密码|none|
 |createdAt|string|true|none|创建时间|none|
 |updatedAt|string|true|none|修改时间|none|
 
@@ -1669,7 +2836,10 @@ GET /info
     "email": "string",
     "phone": "string"
   },
-  "role": "string",
+  "role": {
+    "name": "string",
+    "displayName": "string"
+  },
   "token": "string",
   "permission": {
     "rolePermission": [
@@ -1695,8 +2865,10 @@ GET /info
 |» userName|string|true|none|用户名|none|
 |» realName|string|true|none|真实信息|none|
 |» email|string|true|none|邮箱|none|
-|» phone|string|true|none|手机号|none|
-|role|string|true|none|角色组|none|
+|» phone|string¦null|true|none|手机号|none|
+|role|object|true|none|角色组|none|
+|» name|string|true|none|角色名|none|
+|» displayName|string|true|none|角色名描述|none|
 |token|string|true|none|用户登录验证令牌|none|
 |permission|object|true|none||none|
 |» rolePermission|[string]|true|none|角色权限组表|none|
@@ -1812,4 +2984,3 @@ GET /info
 |code|string|true|none|验证码|none|
 |invite|string¦null|true|none|邀请码|none|
 |password|string|true|none|密码|none|
-
