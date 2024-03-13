@@ -113,11 +113,20 @@
 | 2 | `organize_uuid` | 发布交易的企业唯一标识符，与企业信息表的organize_uuid字段关联。 | char(36) | MUL | NO |  |  |
 | 3 | `quota_amount` | 出售的碳排放额度，单位通常为吨CO2等价物。 | decimal(10,0) |  | NO |  |  |
 | 4 | `price_per_unit` | 每单位碳排放额度的价格，可根据市场定价。 | decimal(10,0) |  | NO |  |  |
+<<<<<<< HEAD
 | 5 | `status` | 发布状态，可用值：'active', 'completed', 'cancelled'。 | varchar(9) |  | NO |  | active |
 | 6 | `description` | 交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。 | text |  | NO |  |  |
 | 7 | `blockchain_tx_id` | 关联的区块链交易ID，用于在区块链上追踪具体的交易记录。 | varchar(255) |  | NO |  |  |
 | 8 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
 | 9 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+=======
+| 5 | `status` | 发布状态，可用值：'draft,'active', 'completed', 'cancelled'。 | varchar(9) |  | NO |  | draft |
+| 6 | `description` | 交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。 | text |  | NO |  |  |
+| 7 | `verify_uuid` | 验证人 | char(36) | MUL | NO |  |  |
+| 8 | `blockchain_tx_id` | 关联的区块链交易ID，用于在区块链上追踪具体的交易记录。 | varchar(255) |  | NO |  |  |
+| 9 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
+| 10 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+>>>>>>> 7af12f3 (Upload)
 
 
 #### 7、 fy_invite
@@ -224,7 +233,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主机： 172.17.0.2
+<<<<<<< HEAD
 -- 生成日期： 2024-03-13 06:26:44
+=======
+-- 生成日期： 2024-03-13 08:01:41
+>>>>>>> 7af12f3 (Upload)
 -- 服务器版本： 8.2.0
 -- PHP 版本： 8.2.16
 
@@ -367,8 +380,14 @@ CREATE TABLE `fy_carbon_trade` (
   `organize_uuid` char(36) NOT NULL COMMENT '发布交易的企业唯一标识符，与企业信息表的organize_uuid字段关联。',
   `quota_amount` decimal(10,0) NOT NULL COMMENT '出售的碳排放额度，单位通常为吨CO2等价物。',
   `price_per_unit` decimal(10,0) NOT NULL COMMENT '每单位碳排放额度的价格，可根据市场定价。',
+<<<<<<< HEAD
   `status` varchar(9) NOT NULL DEFAULT 'active' COMMENT '发布状态，可用值：''active'', ''completed'', ''cancelled''。',
   `description` text NOT NULL COMMENT '交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。',
+=======
+  `status` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'draft' COMMENT '发布状态，可用值：''draft,''active'', ''completed'', ''cancelled''。',
+  `description` text NOT NULL COMMENT '交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。',
+  `verify_uuid` char(36) NOT NULL COMMENT '验证人',
+>>>>>>> 7af12f3 (Upload)
   `blockchain_tx_id` varchar(255) NOT NULL COMMENT '关联的区块链交易ID，用于在区块链上追踪具体的交易记录。',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` timestamp NULL DEFAULT NULL COMMENT '修改时间'
@@ -528,7 +547,12 @@ ALTER TABLE `fy_carbon_report`
 --
 ALTER TABLE `fy_carbon_trade`
   ADD PRIMARY KEY (`id`),
+<<<<<<< HEAD
   ADD KEY `fy_carbon_trade_fy_user_uuid_fk` (`organize_uuid`);
+=======
+  ADD KEY `fy_carbon_trade_fy_user_uuid_fk` (`organize_uuid`),
+  ADD KEY `fy_carbon_trade_fy_user_uuid_fk_2` (`verify_uuid`);
+>>>>>>> 7af12f3 (Upload)
 
 --
 -- 表的索引 `fy_invite`
@@ -697,7 +721,12 @@ ALTER TABLE `fy_carbon_report`
 -- 限制表 `fy_carbon_trade`
 --
 ALTER TABLE `fy_carbon_trade`
+<<<<<<< HEAD
   ADD CONSTRAINT `fy_carbon_trade_fy_user_uuid_fk` FOREIGN KEY (`organize_uuid`) REFERENCES `fy_user` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE;
+=======
+  ADD CONSTRAINT `fy_carbon_trade_fy_user_uuid_fk` FOREIGN KEY (`organize_uuid`) REFERENCES `fy_user` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fy_carbon_trade_fy_user_uuid_fk_2` FOREIGN KEY (`verify_uuid`) REFERENCES `fy_user` (`uuid`) ON UPDATE CASCADE;
+>>>>>>> 7af12f3 (Upload)
 
 --
 -- 限制表 `fy_invite`
@@ -734,5 +763,9 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7af12f3 (Upload)
 ```
 
