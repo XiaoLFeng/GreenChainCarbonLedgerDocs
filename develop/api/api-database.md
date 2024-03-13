@@ -113,20 +113,12 @@
 | 2 | `organize_uuid` | 发布交易的企业唯一标识符，与企业信息表的organize_uuid字段关联。 | char(36) | MUL | NO |  |  |
 | 3 | `quota_amount` | 出售的碳排放额度，单位通常为吨CO2等价物。 | decimal(10,0) |  | NO |  |  |
 | 4 | `price_per_unit` | 每单位碳排放额度的价格，可根据市场定价。 | decimal(10,0) |  | NO |  |  |
-<<<<<<< HEAD
-| 5 | `status` | 发布状态，可用值：'active', 'completed', 'cancelled'。 | varchar(9) |  | NO |  | active |
-| 6 | `description` | 交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。 | text |  | NO |  |  |
-| 7 | `blockchain_tx_id` | 关联的区块链交易ID，用于在区块链上追踪具体的交易记录。 | varchar(255) |  | NO |  |  |
-| 8 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
-| 9 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
-=======
 | 5 | `status` | 发布状态，可用值：'draft,'active', 'completed', 'cancelled'。 | varchar(9) |  | NO |  | draft |
 | 6 | `description` | 交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。 | text |  | NO |  |  |
 | 7 | `verify_uuid` | 验证人 | char(36) | MUL | NO |  |  |
 | 8 | `blockchain_tx_id` | 关联的区块链交易ID，用于在区块链上追踪具体的交易记录。 | varchar(255) |  | NO |  |  |
 | 9 | `created_at` | 创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
 | 10 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
->>>>>>> 7af12f3 (Upload)
 
 
 #### 7、 fy_invite
