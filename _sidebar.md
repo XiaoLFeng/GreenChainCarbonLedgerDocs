@@ -3,6 +3,7 @@
 * [项目设计方案](/design/)
   * [区块链设计方案](/design/blockchain-design)
   * [用户设计方案](/design/user-design)
+  * [碳核算模块及碳交易设计方案](/design/carbon-design)
 * [开发文档](/develop/)
   * [后端文档](/develop/api/api-specification)
     * [接口文档](/develop/api/api-doc)
