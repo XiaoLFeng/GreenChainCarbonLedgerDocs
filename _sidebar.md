@@ -8,6 +8,7 @@
   * [后端文档](/develop/api/api-specification)
     * [接口文档](/develop/api/api-doc)
     * [数据库文档](/develop/api/api-database)
+    * [碳核算公式](/develop/api/api-carbon)
   * [前端文档](/develop/web/web-specification)
     * [Axios开发规范](/develop/web/web-axios)
   * [本项目开发方式](/develop/agile-development)
