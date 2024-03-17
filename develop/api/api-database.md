@@ -54,8 +54,8 @@
 | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
 | 1 | `id` | 主键 | bigint unsigned | PRI | NO | auto_increment |  |
 | 2 | `organize_uuid` | 企业唯一标识符，与企业信息表的organize_uuid字段关联。 | char(46) | MUL | NO |  |  |
-| 3 | `emission_source` | 碳排放源，如能源消耗、生产过程、物流等。 | varchar(255) |  | NO |  |  |
-| 4 | `emission_amount` | 碳排放量，单位可为吨CO2等价物。 | int |  | NO |  |  |
+| 3 | `emission_type` | 碳排放类型 | char(36) | MUL | NO |  | default |
+| 4 | `emission_amount` | 碳排放量，单位可为吨CO2等价物。 | decimal(10,2) |  | NO |  |  |
 | 5 | `accounting_period` | 核算周期，通常为一个财年或特定时间段。(20230101-20230120) | varchar(17) |  | NO |  |  |
 | 6 | `data_verification_status` | 数据核验状态，可用值：'pending', 'verified', 'rejected'。 | varchar(8) |  | NO |  | pending |
 | 7 | `verifier_uuid` | 数据审核员/核验员的唯一标识符，与用户信息表关联。 | char(36) | MUL | YES |  |  |
@@ -74,9 +74,9 @@
 | 1 | `uuid` | 碳排放UUID | char(36) | PRI | NO |  |  |
 | 2 | `organize_uuid` | 组织用户UUID | char(36) | MUL | NO |  |  |
 | 3 | `quota_year` | 配额年份，表示这个配额分配给企业的年份 | int unsigned |  | NO |  |  |
-| 4 | `total_quota` | 总配额量，单位通常为吨CO2等价物。 | decimal(10,0) |  | NO |  |  |
-| 5 | `allocated_quota` | 已分配配额量，单位同上。初始时可能与总配额量相等，随后可能因为市场交易而变化。 | decimal(10,0) |  | NO |  |  |
-| 6 | `used_quota` | 已使用配额量，表示企业实际消耗的碳配额。 | decimal(10,0) |  | NO |  | 0 |
+| 4 | `total_quota` | 总配额量，单位通常为吨CO2等价物。 | decimal(10,2) |  | NO |  |  |
+| 5 | `allocated_quota` | 已分配配额量，单位同上。初始时可能与总配额量相等，随后可能因为市场交易而变化。 | decimal(10,2) |  | NO |  |  |
+| 6 | `used_quota` | 已使用配额量，表示企业实际消耗的碳配额。 | decimal(10,2) |  | NO |  | 0.00 |
 | 7 | `allocation_date` | 配额分配日期，记录企业配额分配的确切日期。 | date |  | YES |  |  |
 | 8 | `compliance_status` | 合规状态，记录企业碳排放是否符合分配的配额。 | tinyint(1) |  | NO |  | 0 |
 | 9 | `audit_log` | 审计日志，记录配额分配、使用和交易的详细情况，可用于审计和溯源。 | json |  | YES |  |  |
@@ -91,17 +91,19 @@
 | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
 | 1 | `id` | 碳排放报告唯一标识符，主键 | bigint unsigned | PRI | NO | auto_increment |  |
 | 2 | `organize_uuid` | 企业唯一标识符，与企业信息表的organize_uuid字段关联 | char(36) | MUL | NO |  |  |
-| 3 | `accounting_period` | 报告涵盖的核算周期，通常为一个财年或特定时间段。(20230101-20230120) | varchar(17) |  | NO |  |  |
-| 4 | `total_emission` | 报告周期内总碳排放量，单位可为吨CO2等价物。 | decimal(10,0) |  | NO |  |  |
-| 5 | `emission_reduction` | 报告周期内实现的碳减排量，单位同上。 | decimal(10,0) |  | NO |  |  |
-| 6 | `net_emission` | 净碳排放量，计算得出，= total_emission - emission_reduction | decimal(10,0) |  | NO |  |  |
-| 7 | `report_status` | 报告状态，可用值：'draft', 'pending_review', 'approved', 'rejected'。 | varchar(14) |  | NO |  | draft |
-| 8 | `verifier_uuid` | 审核员的唯一标识符，与用户信息表关联。 | char(36) | MUL | YES |  |  |
-| 9 | `verification_date` | 审核日期。 | date |  | YES |  |  |
-| 10 | `report_summary` | 报告摘要，概述关键碳排放和减排信息。 | text |  | YES |  |  |
-| 11 | `blockchain_tx_id` | 报告铸造和上链后的区块链交易ID，用于追踪和验证。 | varchar(255) |  | YES |  |  |
-| 12 | `created_at` | 记录创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
-| 13 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+| 3 | `report_title` | 报告标题 | varchar(100) |  | NO |  |  |
+| 4 | `report_type` | 报告类型 | char(36) | MUL | NO |  |  |
+| 5 | `accounting_period` | 报告涵盖的核算周期，通常为一个财年或特定时间段。(20230101-20230120) | varchar(17) |  | NO |  |  |
+| 6 | `total_emission` | 报告周期内总碳排放量，单位可为吨CO2等价物。 | decimal(10,2) |  | NO |  |  |
+| 7 | `emission_reduction` | 报告周期内实现的碳减排量，单位同上。 | decimal(10,2) |  | NO |  |  |
+| 8 | `net_emission` | 净碳排放量，计算得出，= total_emission - emission_reduction | decimal(10,2) |  | NO |  |  |
+| 9 | `report_status` | 报告状态，可用值：'draft', 'pending_review', 'approved', 'rejected'。 | varchar(14) |  | NO |  | draft |
+| 10 | `verifier_uuid` | 审核员的唯一标识符，与用户信息表关联。 | char(36) | MUL | YES |  |  |
+| 11 | `verification_date` | 审核日期。 | date |  | YES |  |  |
+| 12 | `report_summary` | 报告摘要，概述关键碳排放和减排信息。 | text |  | YES |  |  |
+| 13 | `blockchain_tx_id` | 报告铸造和上链后的区块链交易ID，用于追踪和验证。 | varchar(255) |  | YES |  |  |
+| 14 | `created_at` | 记录创建时间 | timestamp |  | NO | DEFAULT_GENERATED | CURRENT_TIMESTAMP |
+| 15 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
 
 
 #### 6、 fy_carbon_trade
@@ -111,8 +113,8 @@
 | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
 | 1 | `id` | 列表唯一标识符，主键。 | bigint unsigned | PRI | NO | auto_increment |  |
 | 2 | `organize_uuid` | 发布交易的企业唯一标识符，与企业信息表的organize_uuid字段关联。 | char(36) | MUL | NO |  |  |
-| 3 | `quota_amount` | 出售的碳排放额度，单位通常为吨CO2等价物。 | decimal(10,0) |  | NO |  |  |
-| 4 | `price_per_unit` | 每单位碳排放额度的价格，可根据市场定价。 | decimal(10,0) |  | NO |  |  |
+| 3 | `quota_amount` | 出售的碳排放额度，单位通常为吨CO2等价物。 | decimal(10,2) |  | NO |  |  |
+| 4 | `price_per_unit` | 每单位碳排放额度的价格，可根据市场定价。 | decimal(10,2) |  | NO |  |  |
 | 5 | `status` | 发布状态，可用值：'draft,'active', 'completed', 'cancelled'。 | varchar(9) |  | NO |  | draft |
 | 6 | `description` | 交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。 | text |  | NO |  |  |
 | 7 | `verify_uuid` | 验证人 | char(36) | MUL | NO |  |  |
@@ -121,7 +123,19 @@
 | 10 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
 
 
-#### 7、 fy_invite
+#### 7、 fy_carbon_type
+碳核算类型
+
+| 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
+| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| 1 | `uuid` | 碳核算类型uuid | char(36) | PRI | NO |  |  |
+| 2 | `name` | 碳核算类型名称 | varchar(40) |  | NO |  |  |
+| 3 | `display_name` | 碳核算类型中文昵称解释 | varchar(255) |  | YES |  |  |
+| 4 | `created_at` | 创建时间 | timestamp |  | NO |  |  |
+| 5 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
+
+
+#### 8、 fy_invite
 邀请
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
@@ -133,7 +147,7 @@
 | 5 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
 
 
-#### 8、 fy_permission
+#### 9、 fy_permission
 权限
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
@@ -143,7 +157,7 @@
 | 3 | `description` | 权限描述 | varchar(100) |  | YES |  |  |
 
 
-#### 9、 fy_role
+#### 10、 fy_role
 角色列表
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
@@ -158,7 +172,7 @@
 | 8 | `created_user` | 创建用户uuid | char(36) | MUL | YES |  |  |
 
 
-#### 10、 fy_user
+#### 11、 fy_user
 账户
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
@@ -181,7 +195,7 @@
 | 16 | `deleted_at` | 删除时间 | timestamp |  | YES |  |  |
 
 
-#### 11、 fy_user_ram
+#### 12、 fy_user_ram
 子用户
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
@@ -200,7 +214,7 @@
 | 12 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
 
 
-#### 12、 fy_user_verify
+#### 13、 fy_user_verify
 账户校验
 
 | 序号 | 名称 | 描述 | 类型 | 键 | 为空 | 额外 | 默认值 |
@@ -224,12 +238,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- 主机： 172.17.0.2
-<<<<<<< HEAD
--- 生成日期： 2024-03-13 06:26:44
-=======
--- 生成日期： 2024-03-13 08:01:41
->>>>>>> 7af12f3 (Upload)
+-- 主机： 172.17.0.1
+-- 生成日期： 2024-03-17 08:09:34
 -- 服务器版本： 8.2.0
 -- PHP 版本： 8.2.16
 
@@ -307,8 +317,8 @@ CREATE TABLE `fy_approve_organize` (
 CREATE TABLE `fy_carbon_accounting` (
   `id` bigint UNSIGNED NOT NULL COMMENT '主键',
   `organize_uuid` char(46) NOT NULL COMMENT '企业唯一标识符，与企业信息表的organize_uuid字段关联。',
-  `emission_source` varchar(255) NOT NULL COMMENT '碳排放源，如能源消耗、生产过程、物流等。',
-  `emission_amount` int NOT NULL COMMENT '碳排放量，单位可为吨CO2等价物。',
+  `emission_type` char(36) NOT NULL DEFAULT 'default' COMMENT '碳排放类型',
+  `emission_amount` decimal(10,2) NOT NULL COMMENT '碳排放量，单位可为吨CO2等价物。',
   `accounting_period` varchar(17) NOT NULL COMMENT '核算周期，通常为一个财年或特定时间段。(20230101-20230120)',
   `data_verification_status` varchar(8) NOT NULL DEFAULT 'pending' COMMENT '数据核验状态，可用值：''pending'', ''verified'', ''rejected''。',
   `verifier_uuid` char(36) DEFAULT NULL COMMENT '数据审核员/核验员的唯一标识符，与用户信息表关联。',
@@ -329,9 +339,9 @@ CREATE TABLE `fy_carbon_quota` (
   `uuid` char(36) NOT NULL COMMENT '碳排放UUID',
   `organize_uuid` char(36) NOT NULL COMMENT '组织用户UUID',
   `quota_year` int UNSIGNED NOT NULL COMMENT '配额年份，表示这个配额分配给企业的年份',
-  `total_quota` decimal(10,0) NOT NULL COMMENT '总配额量，单位通常为吨CO2等价物。',
-  `allocated_quota` decimal(10,0) NOT NULL COMMENT '已分配配额量，单位同上。初始时可能与总配额量相等，随后可能因为市场交易而变化。',
-  `used_quota` decimal(10,0) NOT NULL DEFAULT '0' COMMENT '已使用配额量，表示企业实际消耗的碳配额。',
+  `total_quota` decimal(10,2) NOT NULL COMMENT '总配额量，单位通常为吨CO2等价物。',
+  `allocated_quota` decimal(10,2) NOT NULL COMMENT '已分配配额量，单位同上。初始时可能与总配额量相等，随后可能因为市场交易而变化。',
+  `used_quota` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '已使用配额量，表示企业实际消耗的碳配额。',
   `allocation_date` date DEFAULT NULL COMMENT '配额分配日期，记录企业配额分配的确切日期。',
   `compliance_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '合规状态，记录企业碳排放是否符合分配的配额。',
   `audit_log` json DEFAULT NULL COMMENT '审计日志，记录配额分配、使用和交易的详细情况，可用于审计和溯源。',
@@ -348,10 +358,12 @@ CREATE TABLE `fy_carbon_quota` (
 CREATE TABLE `fy_carbon_report` (
   `id` bigint UNSIGNED NOT NULL COMMENT '碳排放报告唯一标识符，主键',
   `organize_uuid` char(36) NOT NULL COMMENT '企业唯一标识符，与企业信息表的organize_uuid字段关联',
+  `report_title` varchar(100) NOT NULL COMMENT '报告标题',
+  `report_type` char(36) NOT NULL COMMENT '报告类型',
   `accounting_period` varchar(17) NOT NULL COMMENT '报告涵盖的核算周期，通常为一个财年或特定时间段。(20230101-20230120)',
-  `total_emission` decimal(10,0) NOT NULL COMMENT '报告周期内总碳排放量，单位可为吨CO2等价物。',
-  `emission_reduction` decimal(10,0) NOT NULL COMMENT '报告周期内实现的碳减排量，单位同上。',
-  `net_emission` decimal(10,0) NOT NULL COMMENT '净碳排放量，计算得出，= total_emission - emission_reduction',
+  `total_emission` decimal(10,2) NOT NULL COMMENT '报告周期内总碳排放量，单位可为吨CO2等价物。',
+  `emission_reduction` decimal(10,2) NOT NULL COMMENT '报告周期内实现的碳减排量，单位同上。',
+  `net_emission` decimal(10,2) NOT NULL COMMENT '净碳排放量，计算得出，= total_emission - emission_reduction',
   `report_status` varchar(14) NOT NULL DEFAULT 'draft' COMMENT '报告状态，可用值：''draft'', ''pending_review'', ''approved'', ''rejected''。',
   `verifier_uuid` char(36) DEFAULT NULL COMMENT '审核员的唯一标识符，与用户信息表关联。',
   `verification_date` date DEFAULT NULL COMMENT '审核日期。',
@@ -370,20 +382,29 @@ CREATE TABLE `fy_carbon_report` (
 CREATE TABLE `fy_carbon_trade` (
   `id` bigint UNSIGNED NOT NULL COMMENT '列表唯一标识符，主键。',
   `organize_uuid` char(36) NOT NULL COMMENT '发布交易的企业唯一标识符，与企业信息表的organize_uuid字段关联。',
-  `quota_amount` decimal(10,0) NOT NULL COMMENT '出售的碳排放额度，单位通常为吨CO2等价物。',
-  `price_per_unit` decimal(10,0) NOT NULL COMMENT '每单位碳排放额度的价格，可根据市场定价。',
-<<<<<<< HEAD
-  `status` varchar(9) NOT NULL DEFAULT 'active' COMMENT '发布状态，可用值：''active'', ''completed'', ''cancelled''。',
-  `description` text NOT NULL COMMENT '交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。',
-=======
+  `quota_amount` decimal(10,2) NOT NULL COMMENT '出售的碳排放额度，单位通常为吨CO2等价物。',
+  `price_per_unit` decimal(10,2) NOT NULL COMMENT '每单位碳排放额度的价格，可根据市场定价。',
   `status` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'draft' COMMENT '发布状态，可用值：''draft,''active'', ''completed'', ''cancelled''。',
   `description` text NOT NULL COMMENT '交易详情描述，可以包含额外信息如碳排放额度的来源、有效期等。',
   `verify_uuid` char(36) NOT NULL COMMENT '验证人',
->>>>>>> 7af12f3 (Upload)
   `blockchain_tx_id` varchar(255) NOT NULL COMMENT '关联的区块链交易ID，用于在区块链上追踪具体的交易记录。',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` timestamp NULL DEFAULT NULL COMMENT '修改时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='碳交易发布';
+
+-- --------------------------------------------------------
+
+--
+-- 表的结构 `fy_carbon_type`
+--
+
+CREATE TABLE `fy_carbon_type` (
+  `uuid` char(36) NOT NULL COMMENT '碳核算类型uuid',
+  `name` varchar(40) NOT NULL COMMENT '碳核算类型名称',
+  `display_name` varchar(255) DEFAULT NULL COMMENT '碳核算类型中文昵称解释',
+  `created_at` timestamp NOT NULL COMMENT '创建时间',
+  `updated_at` timestamp NULL DEFAULT NULL COMMENT '修改时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='碳核算类型';
 
 -- --------------------------------------------------------
 
@@ -517,7 +538,8 @@ ALTER TABLE `fy_carbon_accounting`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fy_carbon_accounting_fy_user_uuid_fk` (`organize_uuid`),
   ADD KEY `fy_carbon_accounting_fy_carbon_report_id_fk` (`carbon_report_id`),
-  ADD KEY `fy_carbon_accounting_fy_user_uuid_fk_2` (`verifier_uuid`);
+  ADD KEY `fy_carbon_accounting_fy_user_uuid_fk_2` (`verifier_uuid`),
+  ADD KEY `fy_carbon_accounting_fy_carbon_type_uuid_fk` (`emission_type`);
 
 --
 -- 表的索引 `fy_carbon_quota`
@@ -532,19 +554,22 @@ ALTER TABLE `fy_carbon_quota`
 ALTER TABLE `fy_carbon_report`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fy_carbon_report_fy_user_uuid_fk` (`organize_uuid`),
-  ADD KEY `fy_carbon_report_fy_user_uuid_fk_2` (`verifier_uuid`);
+  ADD KEY `fy_carbon_report_fy_user_uuid_fk_2` (`verifier_uuid`),
+  ADD KEY `fy_carbon_report_fy_carbon_type_uuid_fk` (`report_type`);
 
 --
 -- 表的索引 `fy_carbon_trade`
 --
 ALTER TABLE `fy_carbon_trade`
   ADD PRIMARY KEY (`id`),
-<<<<<<< HEAD
-  ADD KEY `fy_carbon_trade_fy_user_uuid_fk` (`organize_uuid`);
-=======
   ADD KEY `fy_carbon_trade_fy_user_uuid_fk` (`organize_uuid`),
   ADD KEY `fy_carbon_trade_fy_user_uuid_fk_2` (`verify_uuid`);
->>>>>>> 7af12f3 (Upload)
+
+--
+-- 表的索引 `fy_carbon_type`
+--
+ALTER TABLE `fy_carbon_type`
+  ADD PRIMARY KEY (`uuid`);
 
 --
 -- 表的索引 `fy_invite`
@@ -693,6 +718,7 @@ ALTER TABLE `fy_approve_organize`
 --
 ALTER TABLE `fy_carbon_accounting`
   ADD CONSTRAINT `fy_carbon_accounting_fy_carbon_report_id_fk` FOREIGN KEY (`carbon_report_id`) REFERENCES `fy_carbon_report` (`id`),
+  ADD CONSTRAINT `fy_carbon_accounting_fy_carbon_type_uuid_fk` FOREIGN KEY (`emission_type`) REFERENCES `fy_carbon_type` (`uuid`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fy_carbon_accounting_fy_user_uuid_fk` FOREIGN KEY (`organize_uuid`) REFERENCES `fy_user` (`uuid`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fy_carbon_accounting_fy_user_uuid_fk_2` FOREIGN KEY (`verifier_uuid`) REFERENCES `fy_user` (`uuid`) ON UPDATE CASCADE;
 
@@ -706,6 +732,7 @@ ALTER TABLE `fy_carbon_quota`
 -- 限制表 `fy_carbon_report`
 --
 ALTER TABLE `fy_carbon_report`
+  ADD CONSTRAINT `fy_carbon_report_fy_carbon_type_uuid_fk` FOREIGN KEY (`report_type`) REFERENCES `fy_carbon_type` (`uuid`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fy_carbon_report_fy_user_uuid_fk` FOREIGN KEY (`organize_uuid`) REFERENCES `fy_user` (`uuid`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fy_carbon_report_fy_user_uuid_fk_2` FOREIGN KEY (`verifier_uuid`) REFERENCES `fy_user` (`uuid`) ON UPDATE CASCADE;
 
@@ -713,12 +740,8 @@ ALTER TABLE `fy_carbon_report`
 -- 限制表 `fy_carbon_trade`
 --
 ALTER TABLE `fy_carbon_trade`
-<<<<<<< HEAD
-  ADD CONSTRAINT `fy_carbon_trade_fy_user_uuid_fk` FOREIGN KEY (`organize_uuid`) REFERENCES `fy_user` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE;
-=======
   ADD CONSTRAINT `fy_carbon_trade_fy_user_uuid_fk` FOREIGN KEY (`organize_uuid`) REFERENCES `fy_user` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fy_carbon_trade_fy_user_uuid_fk_2` FOREIGN KEY (`verify_uuid`) REFERENCES `fy_user` (`uuid`) ON UPDATE CASCADE;
->>>>>>> 7af12f3 (Upload)
 
 --
 -- 限制表 `fy_invite`
@@ -755,9 +778,5 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-<<<<<<< HEAD
-=======
-
->>>>>>> 7af12f3 (Upload)
 ```
 
