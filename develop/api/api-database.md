@@ -82,29 +82,55 @@
 | 5 | `updated_at` | 修改时间 | timestamp |  | YES |  |  |
 
 ```json
-// raw_material
-[
-    {
-        "name": 原料名称,
-        "material": {
-            "buy": "购入量",
-            "opening_inv": "期初量",
-            "ending_inv": "期末量",
-            "outside": "生产之外",
-            "export": "外销量"
+// materials
+{
+    "materials": [
+        {
+            "name": "燃料类型ID"
+            "material": {
+                "buy": "购入量",
+                "opening_inv": "期初量",
+                "ending_inv": "期末量",
+                "outside": "生产之外",
+                "export": "外销量"
+            }
         }
-    },
-    {
-        "name": 原料名称,
-        "material": {
-            "buy": "购入量",
-            "opening_inv": "期初量",
-            "ending_inv": "期末量",
-            "outside": "生产之外",
-            "export": "外销量"
+    ],
+    "courses": [
+        {
+            "name": "燃料类型ID"
+            "material": {
+                "buy": "购入量",
+                "opening_inv": "期初量",
+                "ending_inv": "期末量",
+                "outside": "生产之外",
+                "export": "外销量"
+            }
         }
-    },
-]
+    ],
+    "carbon_sequestration": [
+        {
+            "name": "燃料类型ID"
+            "material": {
+                "opening_inv": "期初量",
+                "ending_inv": "期末量",
+                "export": "外销量"
+            }
+        }
+    ],
+    "desulfurization": [
+        {
+            "name": "燃料类型ID"
+            "material": {
+                "buy": "购入量",
+                "opening_inv": "期初量",
+                "ending_inv": "期末量",
+                "outside": "生产之外",
+                "export": "外销量"
+            }
+        }
+    ],
+}
 ```
 
 #### 5、 fy_carbon_item_type
